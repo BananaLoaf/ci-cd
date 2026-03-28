@@ -1,16 +1,19 @@
-name: Python Test
+name: Python Tycheck
 
 on:
   workflow_call:
     inputs:
-      pytest-options:
+      mypy-path:
+        required: true
+        type: string
+      mypy-options:
         required: false
         type: string
         default: ""
 
 jobs:
-  python-test:
-    name: python-test
+  python-typecheck:
+    name: python-typecheck
     runs-on: ubuntu-latest
 
     steps:
@@ -29,5 +32,5 @@ jobs:
       - name: Install the project
         run: uv sync --locked --all-extras
 
-      - name: Test
-        run: uv run pytest ${{ inputs.pytest-options }}
+      - name: Mypy
+        run: uv run mypy ${{ inputs.mypy-path }} ${{ inputs.mypy-options }}
