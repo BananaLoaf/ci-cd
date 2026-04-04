@@ -16,8 +16,13 @@ on:
         type: boolean
         default: false
 
+      ruff-path:
+        required: false
+        type: string
+        default: "."
+
       mypy-path:
-        required: true
+        required: false
         type: string
         default: "."
       mypy-options:
@@ -53,10 +58,10 @@ jobs:
         run: uv sync --locked --all-extras
 
       - name: Ruff check
-        run: uv run ruff check .
+        run: uv run ruff check ${{ inputs.ruff-path }}
 
       - name: Ruff format
-        run: uv run ruff format --check .
+        run: uv run ruff format --check ${{ inputs.ruff-path }}
 
   typecheck:
     name: typecheck
