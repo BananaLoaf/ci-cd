@@ -36,6 +36,25 @@ on:
         default: ""
 
 jobs:
+  lock:
+    name: lock
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Check lockfile
+        run: uv lock --check
+
   lint:
     name: lint
     runs-on: ubuntu-latest
@@ -55,7 +74,7 @@ jobs:
           enable-cache: true
 
       - name: Install the project
-        run: uv sync --locked --all-extras
+        run: uv sync --all-extras
 
       - name: Ruff check
         run: uv run ruff check ${{ inputs.ruff-path }}
@@ -83,7 +102,7 @@ jobs:
           enable-cache: true
 
       - name: Install the project
-        run: uv sync --locked --all-extras
+        run: uv sync --all-extras
 
       - name: Mypy
         run: uv run mypy ${{ inputs.mypy-path }} ${{ inputs.mypy-options }}
@@ -108,7 +127,7 @@ jobs:
           enable-cache: true
 
       - name: Install the project
-        run: uv sync --locked --all-extras
+        run: uv sync --all-extras
 
       - name: Test
         run: uv run pytest ${{ inputs.pytest-options }}
