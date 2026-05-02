@@ -2,12 +2,15 @@ name: Python Build
 
 on:
   workflow_call:
+    inputs:
+      cibuildwheel:
+        required: true
+        type: boolean
 
 jobs:
-  python-build:
-    name: python-build
+  simple-build:
+    if: ${{ !inputs.cibuildwheel }}
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v6
 
@@ -29,3 +32,46 @@ jobs:
         with:
           name: dist
           path: dist/
+
+  platform-build:
+    if: ${{ inputs.cibuildwheel }}
+    strategy:
+      matrix:
+        # linux/x86_64, linux/aarch64 (QEMU), macos/x86_64, macos/arm64, windows/amd64, windows/x86, windows/arm64
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      CIBW_ARCHS_WINDOWS: "AMD64 x86 ARM64"
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.22
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-${{ matrix.os }}
+          path: wheelhouse/
+
+  merge-artifacts:
+    if: ${{ inputs.cibuildwheel }}
+    needs: platform-build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: dist
+          pattern: dist-*
+          delete-merged: true

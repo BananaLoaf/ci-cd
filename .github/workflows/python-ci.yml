@@ -59,7 +59,7 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     needs: lock
-    if: ${{ !inputs.skip-lint }}
+    if: always() && !inputs.skip-lint && (needs.lock.result == 'success' || needs.lock.result == 'skipped')
 
     steps:
       - uses: actions/checkout@v6
